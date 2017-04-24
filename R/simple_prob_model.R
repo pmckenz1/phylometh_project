@@ -47,22 +47,6 @@ get_prob_matrix <- function(Ps,Es, alpha, beta) {
 }
 
 
-Ps <- matrix(nrow = 10,ncol = 10)
-Es <- matrix(nrow = 10,ncol = 10)
-Es[1:100] <- 1
-#Es[1:100] <- 0
-#Ps[1:100] <- 0
-
-Es[25:70] <- 1
-Ps[25:70] <- 1
-
-Ps[,1:5] <- 0
-Ps[c(1:2,7:10),] <- 0
-Ps[c(2:7),c(5,8)] <- 0
-Ps[c(2,7),6:7] <- 0
-Ps[,9:10] <- 0
-Es[,c(5,8)] <- .5
-
 
 
 
@@ -80,17 +64,17 @@ Ps2 <- matrix(nrow = 100,ncol = 100)
 Ps2[1:(100*100)] <- 0
 Ps2[25:35,25:35] <- 1
 
-Ps3a <- matrix(nrow = 100,ncol = 100)
-Ps3a[1:(100*100)] <- 0
-Ps3a[40:60,30:45] <- 1
+Ps3 <- matrix(nrow = 100,ncol = 100)
+Ps3[1:(100*100)] <- 0
+Ps3[40:60,30:45] <- 1
 
-Ps4a <- matrix(nrow = 100,ncol = 100)
-Ps4a[1:(100*100)] <- 0
-Ps4a[60:90,60:80] <- 1
+Ps4 <- matrix(nrow = 100,ncol = 100)
+Ps4[1:(100*100)] <- 0
+Ps4[60:90,60:80] <- 1
 
-Ps5a <- matrix(nrow = 100,ncol = 100)
-Ps5a[1:(100*100)] <- 0
-Ps5a[10:15,20:25] <- 1
+Ps5 <- matrix(nrow = 100,ncol = 100)
+Ps5[1:(100*100)] <- 0
+Ps5[10:15,20:25] <- 1
 
 
 image(Ps1)
@@ -98,23 +82,39 @@ image(Ps2)
 image(Ps3)
 image(Ps1+Ps2+Ps3)
 
-for (w in 1:300) {
+for (w in 1:200) {
   
-  probs <- get_prob_matrix(Ps1,Es,alpha = .5,beta = 0.8)
+  probs <- get_prob_matrix(Ps4,Es,alpha = .5,beta = 0.8)
 #  step_older_Ps <- get_new_ps(Ps, probs)
 
-  Ps1 <- probs
+  Ps4 <- probs
 
+  probs <- get_prob_matrix(Ps5,Es,alpha = .5,beta = 0.8)
+  #  step_older_Ps <- get_new_ps(Ps, probs)
+  
+  Ps5 <- probs
+  print(w)
+}
+Ps4 <- Ps4/max(Ps4)
+Ps5 <- Ps5/max(Ps5)
+anc45 <- Ps4*Ps5
+for (w in 1:400) {
+  
   probs <- get_prob_matrix(Ps2,Es,alpha = .5,beta = 0.8)
   #  step_older_Ps <- get_new_ps(Ps, probs)
   
   Ps2 <- probs
+  
+  probs <- get_prob_matrix(Ps3,Es,alpha = .5,beta = 0.8)
+  #  step_older_Ps <- get_new_ps(Ps, probs)
+  
+  Ps3 <- probs
   print(w)
 }
-image(Ps2)
-image(Ps1)
-image(Ps1*Ps2)
-anc12 <- Ps1*Ps2
+Ps2 <- Ps2/max(Ps2)
+Ps3 <- Ps3/max(Ps3)
+anc23 <- Ps2*Ps3
+
 for (w in 1:400) {
   
   probs <- get_prob_matrix(anc12,Es,alpha = .5,beta = 0.8)

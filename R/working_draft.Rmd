@@ -13,6 +13,44 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Using data matrices, movement function, and speciation function to reconstruct ancestral ranges.
 
+# Sample tree
+
+Five tips, (1(1000))((2(400)3(400))(4(200)5(200)))
+
+# Generate a species range in a matrix with this cool function
+
+```{r}
+get_random_species_range <- function(nrow, ncol, numbercells, startingcell = NULL) {
+  rows <- nrow
+  cols <- ncol
+  randommatrix <- matrix(rep(0,rows*cols), nrow = rows, ncol = cols)
+  if (is.null(startingcell)) {
+    index <- sample(rows*cols,1)
+    randommatrix[index] <- 1
+    pointindices <- arrayInd(index,c(rows,cols))
+  } else {
+    pointindices <- startingcell
+    dim(pointindices) <- c(1,2)
+  }
+  
+  while(sum(randommatrix) < numbercells) {
+  workingcell <- pointindices[sample(nrow(pointindices),1),]
+  random_adjacent <- sample(c(-1:1),2,replace = TRUE) #new cell row and col
+  check_occupancy <- workingcell + random_adjacent
+  if (sum(check_occupancy > 0) == 2 && sum(check_occupancy <= c(rows,cols)) == 2) {
+    if (randommatrix[check_occupancy[1],check_occupancy[2]] == 0) {
+      randommatrix[check_occupancy[1],check_occupancy[2]] <- 1
+      pointindices <- rbind(pointindices,check_occupancy)
+    }
+  }
+  }
+  randommatrix
+}
+
+test <- get_random_species_range(100,100,500)
+image(test)
+
+```
 
 
 
