@@ -1,23 +1,29 @@
 ---
 title: "Working Draft"
-author: "Patrick McKenzie"
+author: "Patrick McKenzie & Rachel Swenie"
 date: "April 24, 2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+```{r include = FALSE}
+set.seed(12345)
+```
 # Biogeography Model
 
 Using data matrices, movement function, and speciation function to reconstruct ancestral ranges.
 
 # Sample tree
 
-Five tips, (1(1000))((2(400)3(400))(4(200)5(200)))
+Five tips, ( 1(1000) )( ( 2(400)3(400) )( 4(200)5(200) ) )
 
 # Generate a species range in a matrix with this cool function
+
+Input the number of matrix rows and columns as the first two arguments, and the number of cells you want to be occupied by the species as the second argument. If you want to species' range to be centered around a particular point, designate that using a two-element vector as the argument for "startingcell" -- otherwise, the range will be centered around a random point.
 
 ```{r}
 get_random_species_range <- function(nrow, ncol, numbercells, startingcell = NULL) {
@@ -47,10 +53,67 @@ get_random_species_range <- function(nrow, ncol, numbercells, startingcell = NUL
   randommatrix
 }
 
-test <- get_random_species_range(100,100,500)
-image(test)
-
+example_range <- get_random_species_range(100,100,500)
+image(example_range)
 ```
+
+# Movement and speciation
+
+For each step in time, the following eqation is applied to each cell to calculate its new "probability" value. 
+*  These are normalized at each node and no longer represent true probabilities when moving up the tree. 
+
+$$P_{s,x,y}(t-1) = E_{x,y}(t-1)(((1-P_{s,x,y}(t))*\alpha*\frac{\bar{N}}{8}) + (P_{s,x,y}(t)*\beta*\frac{\bar{N}}{8}))$$
+
+The same equation is written out in code below. Note that `get_Nbar()` is a separate function written to calculate $\bar{N}$.
+```{r include = FALSE}
+get_Nbar <- function(Ps,i,q) {
+  if (i > 1 && i < nrow(Ps) && q > 1 && q < ncol(Ps)) {
+    Nbar <- sum(Ps[(i-1):(i+1),(q-1):(q+1)]) - Ps[i,q]
+  }
+  if (i == 1 && q > 1 && q < ncol(Ps)) {
+    Nbar <- sum(Ps[(i):(i+1),(q-1):(q+1)]) - Ps[i,q]
+  }
+  if (i == nrow(Ps) && q > 1 && q < ncol(Ps)) {
+    Nbar <- sum(Ps[(i-1):(i),(q-1):(q+1)]) - Ps[i,q]
+  }
+  if (i > 1 && i < nrow(Ps) && q == 1) {
+    Nbar <- sum(Ps[(i-1):(i+1),(q):(q+1)]) - Ps[i,q]
+  }
+  if (i > 1 && i < nrow(Ps) && q == ncol(Ps)) {
+    Nbar <- sum(Ps[(i-1):(i+1),(q-1):(q)]) - Ps[i,q]
+  }
+  if (i == nrow(Ps) && q == ncol(Ps)) {
+    Nbar <- sum(Ps[(i-1):(i),(q-1):(q)]) - Ps[i,q]
+  }
+  if (i == 1 && q == ncol(Ps)) {
+    Nbar <- sum(Ps[(i):(i+1),(q-1):(q)]) - Ps[i,q]
+  }
+  if (i == nrow(Ps) && q == 1) {
+    Nbar <- sum(Ps[(i-1):(i),(q):(q+1)]) - Ps[i,q]
+  }
+  if (i == 1 && q == 1) {
+    Nbar <- sum(Ps[(i):(i+1),(q):(q+1)]) - Ps[i,q]
+  }
+  Nbar
+}
+```
+```{r}
+get_prob_matrix <- function(Ps,Es, alpha, beta) {
+  probs_older <- Ps
+  for (i in 1:nrow(Ps)) { # rows
+    for (q in 1:ncol(Ps)) { # columns
+      Pcell <- Ps[i,q]
+      Ecell <- Es[i,q]
+      Nbar <- get_Nbar(Ps,i,q)
+      Polder <- Ecell * ( ( (1-Pcell) * (Nbar/8) * alpha) + (Pcell * (Nbar/8) * beta) )
+      probs_older[i,q] <- Polder
+    }
+  }
+  probs_older
+}
+```
+
+# Scenario 1: Homogeneous environment
 
 
 
