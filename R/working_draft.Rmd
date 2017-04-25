@@ -113,6 +113,8 @@ get_prob_matrix <- function(Ps,Es, alpha, beta) {
 }
 ```
 
+When a node is reached (moving from tips to root), the probability matrix for each lineage is normalized, and the two matrices are multiplied together.
+
 # Scenario 1: Homogeneous environment
 
 
