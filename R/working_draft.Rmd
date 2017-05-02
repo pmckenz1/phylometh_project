@@ -195,7 +195,136 @@ First, we want to make an environmental matrix that is completely homogeneous, w
 \vspace{12pt}
 
 ```{r}
-Es <- matrix(nrow = 10,ncol = 10)
-Es[1:100] <- 1
+Es <- matrix(nrow = 100,ncol = 100)
+Es[1:10000] <- 1
 ```
+
+\vspace{12pt}
+
+Now we will run our `get_prob_matrix()` function up each branch of the phylogeny to reconstruct ancestral ranges at each node of the phylogeny.
+
+\vspace{12pt}
+
+```{r eval = FALSE}
+ancE <- speciesE
+ancD <- speciesD
+for (w in 1:200) {
+  probs <- get_prob_matrix(ancD,Es,alpha = .5,beta = 0.8)
+  ancD <- probs
+  probs <- get_prob_matrix(ancE,Es,alpha = .5,beta = 0.8)
+  ancE <- probs
+  print(w)
+}
+ancD <- ancD/max(ancD)
+ancE <- ancE/max(ancE)
+ancDE <- ancD*ancE
+
+ancC <- speciesC
+ancB <- speciesB
+for (w in 1:400) {
+  probs <- get_prob_matrix(ancB,Es,alpha = .5,beta = 0.8)
+  ancB <- probs
+  probs <- get_prob_matrix(ancC,Es,alpha = .5,beta = 0.8)
+  ancC <- probs
+  print(w)
+}
+ancB <- ancB/max(ancB)
+ancC <- ancC/max(ancC)
+ancBC <- ancB*ancC
+
+for (w in 1:400) {
+  probs <- get_prob_matrix(ancDE,Es,alpha = .5,beta = 0.8)
+  ancDE <- probs
+  print(w)
+}
+for (w in 1:200) {
+  probs <- get_prob_matrix(ancBC,Es,alpha = .5,beta = 0.8)
+  ancBC <- probs
+  print(w)
+}
+ancDE <- ancDE/max(ancDE)
+ancBC <- ancBC/max(ancBC)
+ancBCDE <- ancBC*ancDE
+
+for (w in 1:400) {
+  probs <- get_prob_matrix(ancBCDE,Es,alpha = .5,beta = 0.8)
+  ancBCDE <- probs
+  print(w)
+}
+ancA <- speciesA
+for (w in 1:1000) {
+  probs <- get_prob_matrix(ancA,Es,alpha = .5,beta = 0.8)
+  ancA <- probs
+  print(w)
+}
+ancBCDE <- ancBCDE/max(ancBCDE)
+ancA <- ancA/max(ancA)
+ancABCDE <- ancA*ancBCDE
+```
+```{r echo = FALSE}
+ancDE <- as.matrix(read.csv("homogeneous_ancED.csv"))
+ancBC <- as.matrix(read.csv("homogeneous_ancBC.csv"))
+ancBCDE <- as.matrix(read.csv("homogeneous_ancBCDE.csv"))
+ancABCDE <- as.matrix(read.csv("homogeneous_ancABCDE.csv"))
+```
+
+```{r echo = FALSE}
+nodes <- (tree$Nnode+length(tree$tip.label))
+ancmatrix <- matrix(1:(length(tree$tip.label)*nodes),ncol = length(tree$tip.label),nrow = nodes)
+layout(ancmatrix)
+par(mar = c(0.5,0.5,0.5,0.5))
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+image(ancABCDE)
+plot.new()
+
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+image(ancBCDE)
+plot.new()
+plot.new()
+plot.new()
+
+plot.new()
+plot.new()
+plot.new()
+image(ancBC)
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+
+plot.new()
+image(ancDE)
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+
+image(speciesE)
+plot.new()
+image(speciesD)
+plot.new()
+image(speciesC)
+plot.new()
+image(speciesB)
+plot.new()
+image(speciesA)
+```
+
+
+
+
 
