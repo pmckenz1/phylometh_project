@@ -268,6 +268,12 @@ ancBCDE <- as.matrix(read.csv("homogeneous_ancBCDE.csv"))
 ancABCDE <- as.matrix(read.csv("homogeneous_ancABCDE.csv"))
 ```
 
+\vspace{12pt}
+
+Let's look at the ancestral states plotted as nodes on the phylogenetic tree:
+
+\vspace{12pt}
+
 ```{r echo = FALSE}
 nodes <- (tree$Nnode+length(tree$tip.label))
 ancmatrix <- matrix(1:(length(tree$tip.label)*nodes),ncol = length(tree$tip.label),nrow = nodes)
@@ -286,9 +292,9 @@ plot.new()
 plot.new()
 plot.new()
 plot.new()
-plot.new()
-plot.new()
 image(ancBCDE)
+plot.new()
+plot.new()
 plot.new()
 plot.new()
 plot.new()
@@ -296,9 +302,9 @@ plot.new()
 plot.new()
 plot.new()
 plot.new()
+plot.new()
+plot.new()
 image(ancBC)
-plot.new()
-plot.new()
 plot.new()
 plot.new()
 plot.new()
@@ -324,7 +330,251 @@ plot.new()
 image(speciesA)
 ```
 
+# Scenario: Adding bands of poorer-quality environment
+
+Now we can explore how heterogeneity in the environmental matrix can affect decisions for ancestral states. We'll add bands of less-hospitable environment below.
+
+```{r fig.height=4,fig.width=5}
+Es <- matrix(nrow = 100,ncol = 100)
+Es[1:10000] <- 1
+
+Es[,70:85] <- .8
+Es[30:40,] <- .8
+Es[60:70,20:40] <- .8
+image(Es)
+```
+
+\vspace{12pt}
+
+Now, again, we can see how ancestral states are reconstructed on the tree.
+
+\vspace{12pt}
 
 
+```{r include = FALSE,eval=FALSE}
+compute_anc_states <- function(Es,speciesA,speciesB,speciesC,speciesD,speciesE,fileprefix) {
+  ancE <- speciesE
+  ancD <- speciesD
+  for (w in 1:200) {
+    probs <- get_prob_matrix(ancD,Es,alpha = .5,beta = 0.8)
+    ancD <- probs
+    probs <- get_prob_matrix(ancE,Es,alpha = .5,beta = 0.8)
+    ancE <- probs
+    print(w)
+  }
+  ancD <- ancD/max(ancD)
+  ancE <- ancE/max(ancE)
+  ancDE <- ancD*ancE
+  write.csv(ancDE,paste0(fileprefix,"_ancDE.csv"),row.names = FALSE)
+  
+  ancC <- speciesC
+  ancB <- speciesB
+  for (w in 1:400) {
+    probs <- get_prob_matrix(ancB,Es,alpha = .5,beta = 0.8)
+    ancB <- probs
+    probs <- get_prob_matrix(ancC,Es,alpha = .5,beta = 0.8)
+    ancC <- probs
+    print(w)
+  }
+  ancB <- ancB/max(ancB)
+  ancC <- ancC/max(ancC)
+  ancBC <- ancB*ancC
+  write.csv(ancBC,paste0(fileprefix,"_ancBC.csv"),row.names = FALSE)
+  
+  for (w in 1:400) {
+    probs <- get_prob_matrix(ancDE,Es,alpha = .5,beta = 0.8)
+    ancDE <- probs
+    print(w)
+  }
+  for (w in 1:200) {
+    probs <- get_prob_matrix(ancBC,Es,alpha = .5,beta = 0.8)
+    ancBC <- probs
+    print(w)
+  }
+  ancDE <- ancDE/max(ancDE)
+  ancBC <- ancBC/max(ancBC)
+  ancBCDE <- ancBC*ancDE
+  write.csv(ancBCDE,paste0(fileprefix,"_ancBCDE.csv"),row.names = FALSE)
+  
+  for (w in 1:400) {
+    probs <- get_prob_matrix(ancBCDE,Es,alpha = .5,beta = 0.8)
+    ancBCDE <- probs
+    print(w)
+  }
+  ancA <- speciesA
+  for (w in 1:1000) {
+    probs <- get_prob_matrix(ancA,Es,alpha = .5,beta = 0.8)
+    ancA <- probs
+    print(w)
+  }
+  ancBCDE <- ancBCDE/max(ancBCDE)
+  ancA <- ancA/max(ancA)
+  ancABCDE <- ancA*ancBCDE
+  write.csv(ancABCDE,paste0(fileprefix,"_ancABCDE.csv"),row.names = FALSE)
+}
+compute_anc_states(Es,speciesA = speciesA, speciesB = speciesB, speciesC = speciesC, speciesD = speciesD, speciesE = speciesE, fileprefix = "heterogeneous")
+```
+```{r echo = FALSE}
+ancDE <- as.matrix(read.csv("heterogeneous_ancDE.csv"))
+ancBC <- as.matrix(read.csv("heterogeneous_ancBC.csv"))
+ancBCDE <- as.matrix(read.csv("heterogeneous_ancBCDE.csv"))
+ancABCDE <- as.matrix(read.csv("heterogeneous_ancABCDE.csv"))
+```
 
+```{r echo = FALSE}
+nodes <- (tree$Nnode+length(tree$tip.label))
+ancmatrix <- matrix(1:(length(tree$tip.label)*nodes),ncol = length(tree$tip.label),nrow = nodes)
+layout(ancmatrix)
+par(mar = c(0.5,0.5,0.5,0.5))
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+image(ancABCDE)
+plot.new()
+
+plot.new()
+plot.new()
+plot.new()
+image(ancBCDE)
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+image(ancBC)
+plot.new()
+plot.new()
+plot.new()
+
+plot.new()
+image(ancDE)
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+
+image(speciesE)
+plot.new()
+image(speciesD)
+plot.new()
+image(speciesC)
+plot.new()
+image(speciesB)
+plot.new()
+image(speciesA)
+```
+
+# Scenario: Hotspot Environment
+
+Let's make a new environmental matrix with "hotspots" of hospitable regions generated from intervering trig functions. The code producing the environmental matrix, along with a heatmap, is pictured below.
+
+\vspace{12pt}
+
+```{r fig.height=4,fig.width=5}
+x <- 1:100
+xlandscape <- (sin(.04*x))/9 * (sin(.1*x))/9
+xlandscape <- xlandscape-min(xlandscape)
+xlandscape <- 1 - xlandscape
+plot(xlandscape,type="l")
+y <- 1:100
+ylandscape <- sin(.05*y +.4*pi)/7 * sin(.1*y +pi)/7
+ylandscape <- ylandscape-min(ylandscape)
+ylandscape <- 1 - ylandscape
+plot(ylandscape,type="l")
+
+Es <- matrix(nrow = 100,ncol = 100)
+Es[1:10000] <- 1
+
+for(i in 1:100) {
+  Es[,i] <- Es[,i]*xlandscape[i]
+}
+for(i in 1:100) {
+  Es[i,] <- Es[i,]*ylandscape[i]
+}
+image(Es)
+```
+```{r include = FALSE, eval = FALSE}
+compute_anc_states(Es,speciesA = speciesA, speciesB = speciesB, speciesC = speciesC, speciesD = speciesD, speciesE = speciesE, fileprefix = "trig")
+```
+```{r echo = FALSE}
+ancDE <- as.matrix(read.csv("trig_ancDE.csv"))
+ancBC <- as.matrix(read.csv("trig_ancBC.csv"))
+ancBCDE <- as.matrix(read.csv("trig_ancBCDE.csv"))
+ancABCDE <- as.matrix(read.csv("trig_ancABCDE.csv"))
+```
+
+\vspace{12pt}
+
+Now we can see how the this influences the ancestral state predictions.
+
+\vspace{12pt}
+
+```{r echo = FALSE}
+nodes <- (tree$Nnode+length(tree$tip.label))
+ancmatrix <- matrix(1:(length(tree$tip.label)*nodes),ncol = length(tree$tip.label),nrow = nodes)
+layout(ancmatrix)
+par(mar = c(0.5,0.5,0.5,0.5))
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+image(ancABCDE)
+plot.new()
+
+plot.new()
+plot.new()
+plot.new()
+image(ancBCDE)
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+image(ancBC)
+plot.new()
+plot.new()
+plot.new()
+
+plot.new()
+image(ancDE)
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+plot.new()
+
+image(speciesE)
+plot.new()
+image(speciesD)
+plot.new()
+image(speciesC)
+plot.new()
+image(speciesB)
+plot.new()
+image(speciesA)
+```
 
