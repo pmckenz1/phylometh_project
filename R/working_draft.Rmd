@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 set.seed(12345)
 library(ape)
 ```
-# Biogeography Model for Range Evolution
+# Continuous Probability Biogeography Model for Range Evolution
 
 This model uses data matrices, movement function, and speciation function to reconstruct ancestral ranges. This allows for range reconstruction without discrete categorization of species range, and also can incorporate the effects of geographical barries which affect species range.
 
